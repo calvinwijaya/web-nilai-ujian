@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NILAI UJIAN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        img {
+            max-width: 300px;
+            margin: 10px 0;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+    <h1>RILIS NILAI UJIAN</h1>
+    <h2>Selamat telah menghadapi Ujian dan melalui Semester Ini!</h2>
+    <img src="https://via.placeholder.com/300" alt="Placeholder Image">
+    <p>Pilih ujian anda:</p>
+    <select id="examDropdown" onchange="displayTable()">
+        <option value="">-- Pilih --</option>
+    </select>
+    <div id="tableContainer"></div>
+
+    <script>
+        let data = {}; // Store parsed data
+
+        // Function to fetch and parse the CSV from Google Sheets
+        function loadGoogleSheet() {
+            const googleSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwyIf6JK8BmkH7UK4Wc1OxyVdNsGh0HnLkbK5WArHpLSuaXWFoua3A2bHa31d2p-3Xe6U2CYH-4XjD/pub?gid=0&single=true&output=csv";
+
+            Papa.parse(googleSheetURL, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    console.log("CSV Data:", results.data);
+
+                    results.data.forEach(row => {
+                        if (!data[row.exam]) {
+                            data[row.exam] = [];
+                        }
+                        data[row.exam].push({
+                            no: row.no,
+                            nama: row.nama,
+                            nilai: parseInt(row.nilai),
+                        });
+                    });
+
+                    populateDropdown(); // Populate the dropdown after fetching
+                },
+                error: function(error) {
+                    console.error("Error loading CSV:", error);
+                }
+            });
+        }
+
+        // Function to populate dropdown with exam options
+        function populateDropdown() {
+            const dropdown = document.getElementById("examDropdown");
+            dropdown.innerHTML = '<option value="">-- Pilih --</option>';
+            Object.keys(data).forEach(exam => {
+                const option = document.createElement("option");
+                option.value = exam;
+                option.textContent = exam;
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Image URL mapping
+        const images = {
+            "0-100": ["https://drive.google.com/file/d/1UEG0pzUgtfzd-RgN1XB_YLBfO-ksIe4Q/view?usp=sharing", 
+            "https://drive.google.com/file/d/14w6bW6t1GmckybS00PxMcPbTiBALiKVr/view?usp=sharing",
+            "https://drive.google.com/file/d/1gSqTPU0DJTkgeQ3762JdbdfaWFEGeqdH/view?usp=sharing",
+            "https://drive.google.com/file/d/1I4Hsihji1mOutktasEK96fSeyt1L2hc7/view?usp=sharing",
+            "https://drive.google.com/file/d/1LH2NNsoL4HHsqO6qdaI983b1DmgO79JN/view?usp=sharing",
+            "https://drive.google.com/file/d/1Dk2GIjADtsnGEEkPTJ4TjufAgafx4nVo/view?usp=sharing",
+            "https://drive.google.com/file/d/1OB-lnr6IUWuLHTQ4zlfegymxKrlC38Qd/view?usp=sharing",
+            "https://drive.google.com/file/d/1bYYS8PLtMxer01sRfDa55DUFk8m4flgh/view?usp=sharing",
+            "https://drive.google.com/file/d/1Ge51ZsTQZXo1S5JEUYafjwBTuFjkS6gc/view?usp=sharing",
+            "https://drive.google.com/file/d/1bhUmNJVFLuiWTVQFENJPlm-slUzdtgks/view?usp=sharing"
+        ]
+        };
+
+        // Function to display table
+        function displayTable() {
+            const exam = document.getElementById("examDropdown").value;
+            const tableContainer = document.getElementById("tableContainer");
+            tableContainer.innerHTML = "";
+
+            if (exam && data[exam]) {
+                let table = `<table>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama</th>
+                                    <th>Nilai</th>
+                                </tr>`;
+
+                data[exam].forEach(row => {
+                    const range = Object.keys(images).find(range => {
+                        const [min, max] = range.split("-").map(Number);
+                        return row.nilai >= min && row.nilai <= max;
+                    });
+
+                    const randomImage = images[range]?.[Math.floor(Math.random() * images[range].length)] || "#";
+
+                    table += `<tr>
+                                <td>${row.no}</td>
+                                <td>${row.nama}</td>
+                                <td><a href="${randomImage}" target="_blank">Lihat Nilai</a></td>
+                              </tr>`;
+                });
+
+                table += `</table>`;
+                tableContainer.innerHTML = table;
+            }
+        }
+
+        // Load Google Sheet on page load
+        document.addEventListener("DOMContentLoaded", loadGoogleSheet);
+    </script>
+</body>
+</html>
